@@ -1,0 +1,2959 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "4d44b8f0",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:21:28.107008Z",
+     "iopub.status.busy": "2023-08-16T01:21:28.106658Z",
+     "iopub.status.idle": "2023-08-16T01:21:30.645602Z",
+     "shell.execute_reply": "2023-08-16T01:21:30.643364Z"
+    },
+    "papermill": {
+     "duration": 2.549599,
+     "end_time": "2023-08-16T01:21:30.648276",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:28.098677",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/conda/lib/python3.10/site-packages/scipy/__init__.py:146: UserWarning: A NumPy version >=1.16.5 and <1.23.0 is required for this version of SciPy (detected version 1.23.5\n",
+      "  warnings.warn(f\"A NumPy version >={np_minversion} and <{np_maxversion}\"\n"
+     ]
+    }
+   ],
+   "source": [
+    "import gc\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import lightgbm as lgb\n",
+    "from  datetime import datetime, timedelta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8f9d03db",
+   "metadata": {
+    "_cell_guid": "79c7e3d0-c299-4dcb-8224-4455121ee9b0",
+    "_uuid": "d629ff2d2480ee46fbb7e2d37f6b5fab8052498a",
+    "papermill": {
+     "duration": 0.005204,
+     "end_time": "2023-08-16T01:21:30.659657",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.654453",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 数据预处理"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bfc484e2",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005634,
+     "end_time": "2023-08-16T01:21:30.672000",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.666366",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 定义数据类型"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e6c124a2",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005644,
+     "end_time": "2023-08-16T01:21:30.683441",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.677797",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### calendar.csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "ae2e9a8e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:21:30.699057Z",
+     "iopub.status.busy": "2023-08-16T01:21:30.698662Z",
+     "iopub.status.idle": "2023-08-16T01:21:30.777843Z",
+     "shell.execute_reply": "2023-08-16T01:21:30.776322Z"
+    },
+    "papermill": {
+     "duration": 0.089406,
+     "end_time": "2023-08-16T01:21:30.780472",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.691066",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>date</th>\n",
+       "      <th>wm_yr_wk</th>\n",
+       "      <th>weekday</th>\n",
+       "      <th>wday</th>\n",
+       "      <th>month</th>\n",
+       "      <th>year</th>\n",
+       "      <th>d</th>\n",
+       "      <th>event_name_1</th>\n",
+       "      <th>event_type_1</th>\n",
+       "      <th>event_name_2</th>\n",
+       "      <th>event_type_2</th>\n",
+       "      <th>snap_CA</th>\n",
+       "      <th>snap_TX</th>\n",
+       "      <th>snap_WI</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>2011-01-29</td>\n",
+       "      <td>11101</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>d_1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2011-01-30</td>\n",
+       "      <td>11101</td>\n",
+       "      <td>3</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>d_2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2011-01-31</td>\n",
+       "      <td>11101</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>d_3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>2011-02-01</td>\n",
+       "      <td>11101</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>d_4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>2011-02-02</td>\n",
+       "      <td>11101</td>\n",
+       "      <td>6</td>\n",
+       "      <td>5</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>d_5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        date  wm_yr_wk  weekday  wday  month  year    d  event_name_1  \\\n",
+       "0 2011-01-29     11101        2     1      1  2011  d_1             0   \n",
+       "1 2011-01-30     11101        3     2      1  2011  d_2             0   \n",
+       "2 2011-01-31     11101        1     3      1  2011  d_3             0   \n",
+       "3 2011-02-01     11101        5     4      2  2011  d_4             0   \n",
+       "4 2011-02-02     11101        6     5      2  2011  d_5             0   \n",
+       "\n",
+       "   event_type_1  event_name_2  event_type_2  snap_CA  snap_TX  snap_WI  \n",
+       "0             0             0             0      0.0      0.0      0.0  \n",
+       "1             0             0             0      0.0      0.0      0.0  \n",
+       "2             0             0             0      0.0      0.0      0.0  \n",
+       "3             0             0             0      1.0      1.0      0.0  \n",
+       "4             0             0             0      1.0      0.0      1.0  "
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# 定义calendar.csv的数据类型\n",
+    "calendarDTypes = {\"event_name_1\": \"category\", \n",
+    "                  \"event_name_2\": \"category\", \n",
+    "                  \"event_type_1\": \"category\", \n",
+    "                  \"event_type_2\": \"category\", \n",
+    "                  \"weekday\": \"category\", \n",
+    "                  'wm_yr_wk': 'int16', \n",
+    "                  \"wday\": \"int16\",\n",
+    "                  \"month\": \"int16\", \n",
+    "                  \"year\": \"int16\", \n",
+    "                  \"snap_CA\": \"float32\", \n",
+    "                  'snap_TX': 'float32', \n",
+    "                  'snap_WI': 'float32' }\n",
+    "\n",
+    "calendar = pd.read_csv(\"../input/m5-forecasting-accuracy/calendar.csv\", \n",
+    "                       dtype = calendarDTypes)\n",
+    "\n",
+    "calendar[\"date\"] = pd.to_datetime(calendar[\"date\"])\n",
+    "\n",
+    "# 将分类特征转化为整数\n",
+    "for col, colDType in calendarDTypes.items():\n",
+    "    if colDType == \"category\":\n",
+    "        calendar[col] = calendar[col].cat.codes.astype(\"int16\")\n",
+    "        calendar[col] -= calendar[col].min()\n",
+    "\n",
+    "calendar.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5c3b12c6",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005493,
+     "end_time": "2023-08-16T01:21:30.792078",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.786585",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### sell_prices.csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "191f4376",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:21:30.806004Z",
+     "iopub.status.busy": "2023-08-16T01:21:30.804672Z",
+     "iopub.status.idle": "2023-08-16T01:21:34.947465Z",
+     "shell.execute_reply": "2023-08-16T01:21:34.946337Z"
+    },
+    "papermill": {
+     "duration": 4.151834,
+     "end_time": "2023-08-16T01:21:34.949508",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:30.797674",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>store_id</th>\n",
+       "      <th>item_id</th>\n",
+       "      <th>wm_yr_wk</th>\n",
+       "      <th>sell_price</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11325</td>\n",
+       "      <td>9.58</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11326</td>\n",
+       "      <td>9.58</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11327</td>\n",
+       "      <td>8.26</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11328</td>\n",
+       "      <td>8.26</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11329</td>\n",
+       "      <td>8.26</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   store_id  item_id  wm_yr_wk  sell_price\n",
+       "0         0        0     11325        9.58\n",
+       "1         0        0     11326        9.58\n",
+       "2         0        0     11327        8.26\n",
+       "3         0        0     11328        8.26\n",
+       "4         0        0     11329        8.26"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "priceDTypes = {\"store_id\": \"category\", \n",
+    "               \"item_id\": \"category\", \n",
+    "               \"wm_yr_wk\": \"int16\",\n",
+    "               \"sell_price\":\"float32\"}\n",
+    "\n",
+    "\n",
+    "prices = pd.read_csv(\"../input/m5-forecasting-accuracy/sell_prices.csv\", \n",
+    "                     dtype = priceDTypes)\n",
+    "\n",
+    "for col, colDType in priceDTypes.items():\n",
+    "    if colDType == \"category\":\n",
+    "        prices[col] = prices[col].cat.codes.astype(\"int16\")\n",
+    "        prices[col] -= prices[col].min()\n",
+    "        \n",
+    "prices.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8dc75513",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005254,
+     "end_time": "2023-08-16T01:21:34.960650",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:34.955396",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### sales_train_validation.csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "d674312a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:21:34.973022Z",
+     "iopub.status.busy": "2023-08-16T01:21:34.972721Z",
+     "iopub.status.idle": "2023-08-16T01:22:05.922564Z",
+     "shell.execute_reply": "2023-08-16T01:22:05.921862Z"
+    },
+    "papermill": {
+     "duration": 30.964118,
+     "end_time": "2023-08-16T01:22:05.930092",
+     "exception": false,
+     "start_time": "2023-08-16T01:21:34.965974",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>item_id</th>\n",
+       "      <th>dept_id</th>\n",
+       "      <th>store_id</th>\n",
+       "      <th>cat_id</th>\n",
+       "      <th>state_id</th>\n",
+       "      <th>d</th>\n",
+       "      <th>sales</th>\n",
+       "      <th>date</th>\n",
+       "      <th>wm_yr_wk</th>\n",
+       "      <th>...</th>\n",
+       "      <th>month</th>\n",
+       "      <th>year</th>\n",
+       "      <th>event_name_1</th>\n",
+       "      <th>event_type_1</th>\n",
+       "      <th>event_name_2</th>\n",
+       "      <th>event_type_2</th>\n",
+       "      <th>snap_CA</th>\n",
+       "      <th>snap_TX</th>\n",
+       "      <th>snap_WI</th>\n",
+       "      <th>sell_price</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>HOBBIES_1_002_CA_1_validation</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>d_250</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>2011-10-05</td>\n",
+       "      <td>11136</td>\n",
+       "      <td>...</td>\n",
+       "      <td>10</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>3.97</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>HOBBIES_1_002_CA_1_validation</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>d_251</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>2011-10-06</td>\n",
+       "      <td>11136</td>\n",
+       "      <td>...</td>\n",
+       "      <td>10</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>3.97</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>HOBBIES_1_002_CA_1_validation</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>d_252</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>2011-10-07</td>\n",
+       "      <td>11136</td>\n",
+       "      <td>...</td>\n",
+       "      <td>10</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>3.97</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>HOBBIES_1_004_CA_1_validation</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>d_250</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>2011-10-05</td>\n",
+       "      <td>11136</td>\n",
+       "      <td>...</td>\n",
+       "      <td>10</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>4.34</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>HOBBIES_1_004_CA_1_validation</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>d_251</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>2011-10-06</td>\n",
+       "      <td>11136</td>\n",
+       "      <td>...</td>\n",
+       "      <td>10</td>\n",
+       "      <td>2011</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>4.34</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 22 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                              id  item_id  dept_id  store_id  cat_id  \\\n",
+       "0  HOBBIES_1_002_CA_1_validation        1        0         0       0   \n",
+       "1  HOBBIES_1_002_CA_1_validation        1        0         0       0   \n",
+       "2  HOBBIES_1_002_CA_1_validation        1        0         0       0   \n",
+       "3  HOBBIES_1_004_CA_1_validation        3        0         0       0   \n",
+       "4  HOBBIES_1_004_CA_1_validation        3        0         0       0   \n",
+       "\n",
+       "   state_id      d  sales       date  wm_yr_wk  ...  month  year  \\\n",
+       "0         0  d_250    0.0 2011-10-05     11136  ...     10  2011   \n",
+       "1         0  d_251    0.0 2011-10-06     11136  ...     10  2011   \n",
+       "2         0  d_252    0.0 2011-10-07     11136  ...     10  2011   \n",
+       "3         0  d_250    0.0 2011-10-05     11136  ...     10  2011   \n",
+       "4         0  d_251    4.0 2011-10-06     11136  ...     10  2011   \n",
+       "\n",
+       "   event_name_1  event_type_1  event_name_2  event_type_2  snap_CA  snap_TX  \\\n",
+       "0             0             0             0             0      1.0      1.0   \n",
+       "1             0             0             0             0      1.0      1.0   \n",
+       "2             0             0             0             0      1.0      1.0   \n",
+       "3             0             0             0             0      1.0      1.0   \n",
+       "4             0             0             0             0      1.0      1.0   \n",
+       "\n",
+       "   snap_WI  sell_price  \n",
+       "0      1.0        3.97  \n",
+       "1      1.0        3.97  \n",
+       "2      0.0        3.97  \n",
+       "3      1.0        4.34  \n",
+       "4      1.0        4.34  \n",
+       "\n",
+       "[5 rows x 22 columns]"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "firstDay = 250\n",
+    "lastDay = 1913\n",
+    "\n",
+    "# 使用firstDay - lastDay的数据用于训练\n",
+    "numCols = [f\"d_{day}\" for day in range(firstDay, lastDay+1)]\n",
+    "\n",
+    "# 分类特征\n",
+    "catCols = ['id', 'item_id', 'dept_id','store_id', 'cat_id', 'state_id']\n",
+    "dtype = {numCol: \"float32\" for numCol in numCols} \n",
+    "dtype.update({catCol: \"category\" for catCol in catCols if catCol != \"id\"})\n",
+    "\n",
+    "\n",
+    "ds = pd.read_csv(\"../input/m5-forecasting-accuracy/sales_train_validation.csv\", \n",
+    "                 usecols = catCols + numCols, dtype = dtype)\n",
+    "\n",
+    "for col in catCols:\n",
+    "    if col != \"id\":\n",
+    "        ds[col] = ds[col].cat.codes.astype(\"int16\")\n",
+    "        ds[col] -= ds[col].min()\n",
+    "        \n",
+    "ds = pd.melt(ds,\n",
+    "             id_vars = catCols,\n",
+    "             value_vars = [col for col in ds.columns if col.startswith(\"d_\")],\n",
+    "             var_name = \"d\",\n",
+    "             value_name = \"sales\")\n",
+    "\n",
+    "\n",
+    "ds = ds.merge(calendar, on = \"d\", copy = False)\n",
+    "ds = ds.merge(prices, on = [\"store_id\", \"item_id\", \"wm_yr_wk\"], copy = False)\n",
+    "\n",
+    "ds.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6eb14bb9",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005642,
+     "end_time": "2023-08-16T01:22:05.941553",
+     "exception": false,
+     "start_time": "2023-08-16T01:22:05.935911",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 特征工程"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "09395bdc",
+   "metadata": {
+    "papermill": {
+     "duration": 0.005762,
+     "end_time": "2023-08-16T01:22:05.953161",
+     "exception": false,
+     "start_time": "2023-08-16T01:22:05.947399",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### 销量特征"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "497de0db",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:22:05.967303Z",
+     "iopub.status.busy": "2023-08-16T01:22:05.966737Z",
+     "iopub.status.idle": "2023-08-16T01:23:52.030494Z",
+     "shell.execute_reply": "2023-08-16T01:23:52.029471Z"
+    },
+    "papermill": {
+     "duration": 106.073888,
+     "end_time": "2023-08-16T01:23:52.032895",
+     "exception": false,
+     "start_time": "2023-08-16T01:22:05.959007",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# 对特征做lag操作\n",
+    "dayLags = [7, 28]\n",
+    "lagSalesCols = [f\"lag_{dayLag}\" for dayLag in dayLags]\n",
+    "for dayLag, lagSalesCol in zip(dayLags, lagSalesCols):\n",
+    "    ds[lagSalesCol] = ds[[\"id\",\"sales\"]].groupby(\"id\")[\"sales\"].shift(dayLag)\n",
+    "    \n",
+    "# 滑动平均\n",
+    "windows = [7, 28]\n",
+    "for window in windows:\n",
+    "    for dayLag, lagSalesCol in zip(dayLags, lagSalesCols):\n",
+    "        ds[f\"rmean_{dayLag}_{window}\"] = ds[[\"id\", lagSalesCol]].groupby(\"id\")[lagSalesCol].transform(lambda x: x.rolling(window).mean())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d251140c",
+   "metadata": {
+    "papermill": {
+     "duration": 0.00617,
+     "end_time": "2023-08-16T01:23:52.045711",
+     "exception": false,
+     "start_time": "2023-08-16T01:23:52.039541",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### 日期特征"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "176ad743",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:23:52.060527Z",
+     "iopub.status.busy": "2023-08-16T01:23:52.059888Z",
+     "iopub.status.idle": "2023-08-16T01:24:04.372829Z",
+     "shell.execute_reply": "2023-08-16T01:24:04.371064Z"
+    },
+    "papermill": {
+     "duration": 12.323225,
+     "end_time": "2023-08-16T01:24:04.375209",
+     "exception": false,
+     "start_time": "2023-08-16T01:23:52.051984",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/4066523257.py:12: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    }
+   ],
+   "source": [
+    "dateFeatures = {\"wday\": \"weekday\",\n",
+    "                \"week\": \"weekofyear\",\n",
+    "                \"month\": \"month\",\n",
+    "                \"quarter\": \"quarter\",\n",
+    "                \"year\": \"year\",\n",
+    "                \"mday\": \"day\"}\n",
+    "\n",
+    "for featName, featFunc in dateFeatures.items():\n",
+    "    if featName in ds.columns:\n",
+    "        ds[featName] = ds[featName].astype(\"int16\")\n",
+    "    else:\n",
+    "        ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "a8031e10",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:04.394078Z",
+     "iopub.status.busy": "2023-08-16T01:24:04.393648Z",
+     "iopub.status.idle": "2023-08-16T01:24:04.417628Z",
+     "shell.execute_reply": "2023-08-16T01:24:04.415833Z"
+    },
+    "papermill": {
+     "duration": 0.035905,
+     "end_time": "2023-08-16T01:24:04.419783",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:04.383878",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Int64Index: 42372682 entries, 0 to 42372681\n",
+      "Data columns (total 31 columns):\n",
+      " #   Column        Dtype         \n",
+      "---  ------        -----         \n",
+      " 0   id            object        \n",
+      " 1   item_id       int16         \n",
+      " 2   dept_id       int16         \n",
+      " 3   store_id      int16         \n",
+      " 4   cat_id        int16         \n",
+      " 5   state_id      int16         \n",
+      " 6   d             object        \n",
+      " 7   sales         float32       \n",
+      " 8   date          datetime64[ns]\n",
+      " 9   wm_yr_wk      int16         \n",
+      " 10  weekday       int16         \n",
+      " 11  wday          int16         \n",
+      " 12  month         int16         \n",
+      " 13  year          int16         \n",
+      " 14  event_name_1  int16         \n",
+      " 15  event_type_1  int16         \n",
+      " 16  event_name_2  int16         \n",
+      " 17  event_type_2  int16         \n",
+      " 18  snap_CA       float32       \n",
+      " 19  snap_TX       float32       \n",
+      " 20  snap_WI       float32       \n",
+      " 21  sell_price    float32       \n",
+      " 22  lag_7         float32       \n",
+      " 23  lag_28        float32       \n",
+      " 24  rmean_7_7     float64       \n",
+      " 25  rmean_28_7    float64       \n",
+      " 26  rmean_7_28    float64       \n",
+      " 27  rmean_28_28   float64       \n",
+      " 28  week          int16         \n",
+      " 29  quarter       int16         \n",
+      " 30  mday          int16         \n",
+      "dtypes: datetime64[ns](1), float32(7), float64(4), int16(17), object(2)\n",
+      "memory usage: 5.0+ GB\n"
+     ]
+    }
+   ],
+   "source": [
+    "ds.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "57a7520f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.006778,
+     "end_time": "2023-08-16T01:24:04.434166",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:04.427388",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### 删除不需要的行和列"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "a14f15f1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:04.448089Z",
+     "iopub.status.busy": "2023-08-16T01:24:04.447766Z",
+     "iopub.status.idle": "2023-08-16T01:24:20.303841Z",
+     "shell.execute_reply": "2023-08-16T01:24:20.302186Z"
+    },
+    "papermill": {
+     "duration": 15.866043,
+     "end_time": "2023-08-16T01:24:20.306577",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:04.440534",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "ds.dropna(inplace = True)\n",
+    "\n",
+    "unusedCols = [\"id\", \"date\", \"sales\",\"d\", \"wm_yr_wk\", \"weekday\"]\n",
+    "trainCols = ds.columns[~ds.columns.isin(unusedCols)]\n",
+    "X_train = ds[trainCols]\n",
+    "y_train = ds[\"sales\"]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6529225f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.006444,
+     "end_time": "2023-08-16T01:24:20.319968",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:20.313524",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### 划分训练&验证集"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "6cb09d58",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:20.334767Z",
+     "iopub.status.busy": "2023-08-16T01:24:20.334362Z",
+     "iopub.status.idle": "2023-08-16T01:24:34.523314Z",
+     "shell.execute_reply": "2023-08-16T01:24:34.522261Z"
+    },
+    "papermill": {
+     "duration": 14.199463,
+     "end_time": "2023-08-16T01:24:34.525940",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:20.326477",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "np.random.seed(777)\n",
+    "\n",
+    "# 定义分类特征\n",
+    "catFeats = ['item_id', 'dept_id','store_id', 'cat_id', 'state_id'] + \\\n",
+    "           [\"event_name_1\", \"event_name_2\", \"event_type_1\", \"event_type_2\"]\n",
+    "\n",
+    "validInds = np.random.choice(X_train.index.values, 2_000_000, replace = False)\n",
+    "trainInds = np.setdiff1d(X_train.index.values, validInds)\n",
+    "\n",
+    "trainData = lgb.Dataset(X_train.loc[trainInds], label = y_train.loc[trainInds], \n",
+    "                        categorical_feature = catFeats, free_raw_data = False)\n",
+    "validData = lgb.Dataset(X_train.loc[validInds], label = y_train.loc[validInds],\n",
+    "                        categorical_feature = catFeats, free_raw_data = False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "171b02e8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:34.541464Z",
+     "iopub.status.busy": "2023-08-16T01:24:34.541075Z",
+     "iopub.status.idle": "2023-08-16T01:24:35.022185Z",
+     "shell.execute_reply": "2023-08-16T01:24:35.020410Z"
+    },
+    "papermill": {
+     "duration": 0.491423,
+     "end_time": "2023-08-16T01:24:35.024700",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:34.533277",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "20"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "del ds, X_train, y_train, validInds, trainInds ; gc.collect()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b8a87cfc",
+   "metadata": {
+    "papermill": {
+     "duration": 0.006218,
+     "end_time": "2023-08-16T01:24:35.037706",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:35.031488",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# lgb model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "a2358ebf",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:35.053245Z",
+     "iopub.status.busy": "2023-08-16T01:24:35.052853Z",
+     "iopub.status.idle": "2023-08-16T01:24:35.058509Z",
+     "shell.execute_reply": "2023-08-16T01:24:35.057341Z"
+    },
+    "papermill": {
+     "duration": 0.015588,
+     "end_time": "2023-08-16T01:24:35.060485",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:35.044897",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "params = {\n",
+    "          \"objective\" : \"poisson\",\n",
+    "          \"metric\" :\"rmse\",\n",
+    "          \"force_row_wise\" : True,\n",
+    "          \"learning_rate\" : 0.05,\n",
+    "          \"sub_row\" : 0.75,\n",
+    "          \"bagging_freq\" : 1,\n",
+    "          \"lambda_l2\" : 0.1,\n",
+    "          \"metric\": [\"rmse\"],\n",
+    "          'verbosity': 1,\n",
+    "          'num_iterations' : 1000,\n",
+    "          'num_leaves': 128,\n",
+    "          \"min_data_in_leaf\": 100,\n",
+    "         }"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "1d45361f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T01:24:35.075748Z",
+     "iopub.status.busy": "2023-08-16T01:24:35.074949Z",
+     "iopub.status.idle": "2023-08-16T02:15:42.436336Z",
+     "shell.execute_reply": "2023-08-16T02:15:42.430912Z"
+    },
+    "papermill": {
+     "duration": 3067.374495,
+     "end_time": "2023-08-16T02:15:42.441784",
+     "exception": false,
+     "start_time": "2023-08-16T01:24:35.067289",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/conda/lib/python3.10/site-packages/lightgbm/engine.py:177: UserWarning: Found `num_iterations` in params. Will use it instead of argument\n",
+      "  _log_warning(f\"Found `{alias}` in params. Will use it instead of argument\")\n",
+      "/opt/conda/lib/python3.10/site-packages/lightgbm/basic.py:2065: UserWarning: Using categorical_feature in Dataset.\n",
+      "  _log_warning('Using categorical_feature in Dataset.')\n",
+      "/opt/conda/lib/python3.10/site-packages/lightgbm/engine.py:239: UserWarning: 'verbose_eval' argument is deprecated and will be removed in a future release of LightGBM. Pass 'log_evaluation()' callback via 'callbacks' argument instead.\n",
+      "  _log_warning(\"'verbose_eval' argument is deprecated and will be removed in a future release of LightGBM. \"\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[LightGBM] [Info] Total Bins 4600\n",
+      "[LightGBM] [Info] Number of data points in the train set: 38695732, number of used features: 25\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/conda/lib/python3.10/site-packages/lightgbm/basic.py:1780: UserWarning: Overriding the parameters from Reference Dataset.\n",
+      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
+      "/opt/conda/lib/python3.10/site-packages/lightgbm/basic.py:1513: UserWarning: categorical_column in param dict is overridden.\n",
+      "  _log_warning(f'{cat_alias} in param dict is overridden.')\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[LightGBM] [Info] Start training from score 0.312462\n",
+      "[20]\tvalid_0's rmse: 3.15772\n",
+      "[40]\tvalid_0's rmse: 2.73712\n",
+      "[60]\tvalid_0's rmse: 2.56443\n",
+      "[80]\tvalid_0's rmse: 2.49566\n",
+      "[100]\tvalid_0's rmse: 2.4674\n",
+      "[120]\tvalid_0's rmse: 2.45561\n",
+      "[140]\tvalid_0's rmse: 2.44711\n",
+      "[160]\tvalid_0's rmse: 2.44038\n",
+      "[180]\tvalid_0's rmse: 2.43373\n",
+      "[200]\tvalid_0's rmse: 2.42879\n",
+      "[220]\tvalid_0's rmse: 2.4235\n",
+      "[240]\tvalid_0's rmse: 2.41765\n",
+      "[260]\tvalid_0's rmse: 2.41382\n",
+      "[280]\tvalid_0's rmse: 2.40688\n",
+      "[300]\tvalid_0's rmse: 2.40199\n",
+      "[320]\tvalid_0's rmse: 2.39782\n",
+      "[340]\tvalid_0's rmse: 2.39545\n",
+      "[360]\tvalid_0's rmse: 2.39372\n",
+      "[380]\tvalid_0's rmse: 2.38997\n",
+      "[400]\tvalid_0's rmse: 2.38621\n",
+      "[420]\tvalid_0's rmse: 2.38366\n",
+      "[440]\tvalid_0's rmse: 2.38111\n",
+      "[460]\tvalid_0's rmse: 2.37851\n",
+      "[480]\tvalid_0's rmse: 2.37553\n",
+      "[500]\tvalid_0's rmse: 2.37334\n",
+      "[520]\tvalid_0's rmse: 2.3711\n",
+      "[540]\tvalid_0's rmse: 2.36894\n",
+      "[560]\tvalid_0's rmse: 2.36722\n",
+      "[580]\tvalid_0's rmse: 2.3656\n",
+      "[600]\tvalid_0's rmse: 2.36422\n",
+      "[620]\tvalid_0's rmse: 2.36241\n",
+      "[640]\tvalid_0's rmse: 2.3605\n",
+      "[660]\tvalid_0's rmse: 2.35899\n",
+      "[680]\tvalid_0's rmse: 2.35737\n",
+      "[700]\tvalid_0's rmse: 2.35599\n",
+      "[720]\tvalid_0's rmse: 2.35434\n",
+      "[740]\tvalid_0's rmse: 2.35277\n",
+      "[760]\tvalid_0's rmse: 2.3509\n",
+      "[780]\tvalid_0's rmse: 2.3495\n",
+      "[800]\tvalid_0's rmse: 2.34779\n",
+      "[820]\tvalid_0's rmse: 2.34647\n",
+      "[840]\tvalid_0's rmse: 2.34577\n",
+      "[860]\tvalid_0's rmse: 2.34433\n",
+      "[880]\tvalid_0's rmse: 2.34331\n",
+      "[900]\tvalid_0's rmse: 2.34211\n",
+      "[920]\tvalid_0's rmse: 2.34084\n",
+      "[940]\tvalid_0's rmse: 2.33917\n",
+      "[960]\tvalid_0's rmse: 2.33854\n",
+      "[980]\tvalid_0's rmse: 2.33717\n",
+      "[1000]\tvalid_0's rmse: 2.33603\n"
+     ]
+    }
+   ],
+   "source": [
+    "m_lgb = lgb.train(params, trainData, valid_sets = [validData], verbose_eval = 20) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "6389014d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T02:15:42.468124Z",
+     "iopub.status.busy": "2023-08-16T02:15:42.467412Z",
+     "iopub.status.idle": "2023-08-16T02:15:42.977232Z",
+     "shell.execute_reply": "2023-08-16T02:15:42.976314Z"
+    },
+    "papermill": {
+     "duration": 0.527544,
+     "end_time": "2023-08-16T02:15:42.979353",
+     "exception": false,
+     "start_time": "2023-08-16T02:15:42.451809",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<lightgbm.basic.Booster at 0x79d4f3ecb700>"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "m_lgb.save_model(\"model.lgb\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b34f158d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009932,
+     "end_time": "2023-08-16T02:15:42.999459",
+     "exception": false,
+     "start_time": "2023-08-16T02:15:42.989527",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 预测"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "3cdb64b7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T02:15:43.022009Z",
+     "iopub.status.busy": "2023-08-16T02:15:43.021567Z",
+     "iopub.status.idle": "2023-08-16T02:15:43.042028Z",
+     "shell.execute_reply": "2023-08-16T02:15:43.040859Z"
+    },
+    "papermill": {
+     "duration": 0.034992,
+     "end_time": "2023-08-16T02:15:43.044452",
+     "exception": false,
+     "start_time": "2023-08-16T02:15:43.009460",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# 训练集的最后一天\n",
+    "trLast = 1913\n",
+    "\n",
+    "maxLags = 57\n",
+    "\n",
+    "# 构建数据集用于预测\n",
+    "def create_ds():\n",
+    "    \n",
+    "    startDay = trLast - maxLags\n",
+    "    \n",
+    "    numCols = [f\"d_{day}\" for day in range(startDay, trLast + 1)]\n",
+    "    catCols = ['id', 'item_id', 'dept_id','store_id', 'cat_id', 'state_id']\n",
+    "    \n",
+    "    dtype = {numCol:\"float32\" for numCol in numCols} \n",
+    "    dtype.update({catCol: \"category\" for catCol in catCols if catCol != \"id\"})\n",
+    "    \n",
+    "    ds = pd.read_csv(\"../input/m5-forecasting-accuracy/sales_train_validation.csv\", \n",
+    "                     usecols = catCols + numCols, dtype = dtype)\n",
+    "    \n",
+    "    for col in catCols:\n",
+    "        if col != \"id\":\n",
+    "            ds[col] = ds[col].cat.codes.astype(\"int16\")\n",
+    "            ds[col] -= ds[col].min()\n",
+    "    \n",
+    "    for day in range(trLast + 1, trLast+ 28 +1):\n",
+    "        ds[f\"d_{day}\"] = np.nan\n",
+    "    \n",
+    "    ds = pd.melt(ds,\n",
+    "                 id_vars = catCols,\n",
+    "                 value_vars = [col for col in ds.columns if col.startswith(\"d_\")],\n",
+    "                 var_name = \"d\",\n",
+    "                 value_name = \"sales\")\n",
+    "    \n",
+    "    ds = ds.merge(calendar, on = \"d\", copy = False)\n",
+    "    ds = ds.merge(prices, on = [\"store_id\", \"item_id\", \"wm_yr_wk\"], copy = False)\n",
+    "    \n",
+    "    return ds\n",
+    "\n",
+    "def create_features(ds):          \n",
+    "    dayLags = [7, 28]\n",
+    "    lagSalesCols = [f\"lag_{dayLag}\" for dayLag in dayLags]\n",
+    "    for dayLag, lagSalesCol in zip(dayLags, lagSalesCols):\n",
+    "        ds[lagSalesCol] = ds[[\"id\",\"sales\"]].groupby(\"id\")[\"sales\"].shift(dayLag)\n",
+    "\n",
+    "    windows = [7, 28]\n",
+    "    for window in windows:\n",
+    "        for dayLag, lagSalesCol in zip(dayLags, lagSalesCols):\n",
+    "            ds[f\"rmean_{dayLag}_{window}\"] = ds[[\"id\", lagSalesCol]].groupby(\"id\")[lagSalesCol].transform(lambda x: x.rolling(window).mean())\n",
+    "          \n",
+    "    dateFeatures = {\"wday\": \"weekday\",\n",
+    "                    \"week\": \"weekofyear\",\n",
+    "                    \"month\": \"month\",\n",
+    "                    \"quarter\": \"quarter\",\n",
+    "                    \"year\": \"year\",\n",
+    "                    \"mday\": \"day\"}\n",
+    "\n",
+    "    for featName, featFunc in dateFeatures.items():\n",
+    "        if featName in ds.columns:\n",
+    "            ds[featName] = ds[featName].astype(\"int16\")\n",
+    "        else:\n",
+    "            ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "6b529e0d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T02:15:43.065894Z",
+     "iopub.status.busy": "2023-08-16T02:15:43.065563Z",
+     "iopub.status.idle": "2023-08-16T03:15:27.010145Z",
+     "shell.execute_reply": "2023-08-16T03:15:27.008497Z"
+    },
+    "papermill": {
+     "duration": 3583.958851,
+     "end_time": "2023-08-16T03:15:27.013471",
+     "exception": false,
+     "start_time": "2023-08-16T02:15:43.054620",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0 2016-04-25 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1 2016-04-26 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2 2016-04-27 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "3 2016-04-28 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "4 2016-04-29 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "5 2016-04-30 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "6 2016-05-01 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "7 2016-05-02 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "8 2016-05-03 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9 2016-05-04 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "10 2016-05-05 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "11 2016-05-06 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "12 2016-05-07 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "13 2016-05-08 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "14 2016-05-09 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "15 2016-05-10 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "16 2016-05-11 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "17 2016-05-12 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "18 2016-05-13 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "19 2016-05-14 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "20 2016-05-15 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "21 2016-05-16 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "22 2016-05-17 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "23 2016-05-18 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "24 2016-05-19 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "25 2016-05-20 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "26 2016-05-21 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "27 2016-05-22 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0 1.028 0.3333333333333333\n",
+      "0 2016-04-25 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1 2016-04-26 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2 2016-04-27 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "3 2016-04-28 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "4 2016-04-29 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "5 2016-04-30 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "6 2016-05-01 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "7 2016-05-02 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "8 2016-05-03 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9 2016-05-04 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "10 2016-05-05 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "11 2016-05-06 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "12 2016-05-07 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "13 2016-05-08 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "14 2016-05-09 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "15 2016-05-10 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "16 2016-05-11 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "17 2016-05-12 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "18 2016-05-13 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "19 2016-05-14 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "20 2016-05-15 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "21 2016-05-16 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "22 2016-05-17 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "23 2016-05-18 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "24 2016-05-19 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "25 2016-05-20 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "26 2016-05-21 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "27 2016-05-22 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1 1.023 0.3333333333333333\n",
+      "0 2016-04-25 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1 2016-04-26 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2 2016-04-27 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "3 2016-04-28 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "4 2016-04-29 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "5 2016-04-30 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "6 2016-05-01 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "7 2016-05-02 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "8 2016-05-03 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9 2016-05-04 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "10 2016-05-05 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "11 2016-05-06 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "12 2016-05-07 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "13 2016-05-08 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "14 2016-05-09 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "15 2016-05-10 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "16 2016-05-11 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "17 2016-05-12 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "18 2016-05-13 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "19 2016-05-14 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "20 2016-05-15 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "21 2016-05-16 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "22 2016-05-17 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "23 2016-05-18 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "24 2016-05-19 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "25 2016-05-20 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "26 2016-05-21 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "27 2016-05-22 00:00:00\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/2663671491.py:61: FutureWarning: Series.dt.weekofyear and Series.dt.week have been deprecated. Please use Series.dt.isocalendar().week instead.\n",
+      "  ds[featName] = getattr(ds[\"date\"].dt, featFunc).astype(\"int16\")\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2 1.018 0.3333333333333333\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_20/1930210996.py:35: FutureWarning: The default value of regex will change from True to False in a future version.\n",
+      "  sub2[\"id\"] = sub2[\"id\"].str.replace(\"validation$\", \"evaluation\")\n"
+     ]
+    }
+   ],
+   "source": [
+    "fday = datetime(2016, 4, 25) \n",
+    "alphas = [1.028, 1.023, 1.018]\n",
+    "weights = [1/len(alphas)] * len(alphas)\n",
+    "sub = 0.\n",
+    "\n",
+    "for icount, (alpha, weight) in enumerate(zip(alphas, weights)):\n",
+    "\n",
+    "    te = create_ds()\n",
+    "    cols = [f\"F{i}\" for i in range(1,29)]\n",
+    "\n",
+    "    for tdelta in range(0, 28):\n",
+    "        day = fday + timedelta(days=tdelta)\n",
+    "        print(tdelta, day)\n",
+    "        tst = te[(te['date'] >= day - timedelta(days=maxLags)) & (te['date'] <= day)].copy()\n",
+    "        create_features(tst)\n",
+    "        tst = tst.loc[tst['date'] == day , trainCols]\n",
+    "        te.loc[te['date'] == day, \"sales\"] = alpha * m_lgb.predict(tst) # magic multiplier by kyakovlev\n",
+    "\n",
+    "    te_sub = te.loc[te['date'] >= fday, [\"id\", \"sales\"]].copy()\n",
+    "    te_sub[\"F\"] = [f\"F{rank}\" for rank in te_sub.groupby(\"id\")[\"id\"].cumcount()+1]\n",
+    "    te_sub = te_sub.set_index([\"id\", \"F\" ]).unstack()[\"sales\"][cols].reset_index()\n",
+    "    te_sub.fillna(0., inplace = True)\n",
+    "    te_sub.sort_values(\"id\", inplace = True)\n",
+    "    te_sub.reset_index(drop=True, inplace = True)\n",
+    "    te_sub.to_csv(f\"submission_{icount}.csv\",index=False)\n",
+    "    if icount == 0 :\n",
+    "        sub = te_sub\n",
+    "        sub[cols] *= weight\n",
+    "    else:\n",
+    "        sub[cols] += te_sub[cols]*weight\n",
+    "    print(icount, alpha, weight)\n",
+    "\n",
+    "\n",
+    "sub2 = sub.copy()\n",
+    "sub2[\"id\"] = sub2[\"id\"].str.replace(\"validation$\", \"evaluation\")\n",
+    "sub = pd.concat([sub, sub2], axis=0, sort=False)\n",
+    "sub.to_csv(\"submission.csv\",index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "db7f3d84",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2023-08-16T03:15:27.055936Z",
+     "iopub.status.busy": "2023-08-16T03:15:27.055286Z",
+     "iopub.status.idle": "2023-08-16T03:15:27.078305Z",
+     "shell.execute_reply": "2023-08-16T03:15:27.077159Z"
+    },
+    "papermill": {
+     "duration": 0.047477,
+     "end_time": "2023-08-16T03:15:27.081152",
+     "exception": false,
+     "start_time": "2023-08-16T03:15:27.033675",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th>F</th>\n",
+       "      <th>id</th>\n",
+       "      <th>F1</th>\n",
+       "      <th>F2</th>\n",
+       "      <th>F3</th>\n",
+       "      <th>F4</th>\n",
+       "      <th>F5</th>\n",
+       "      <th>F6</th>\n",
+       "      <th>F7</th>\n",
+       "      <th>F8</th>\n",
+       "      <th>F9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>F19</th>\n",
+       "      <th>F20</th>\n",
+       "      <th>F21</th>\n",
+       "      <th>F22</th>\n",
+       "      <th>F23</th>\n",
+       "      <th>F24</th>\n",
+       "      <th>F25</th>\n",
+       "      <th>F26</th>\n",
+       "      <th>F27</th>\n",
+       "      <th>F28</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>FOODS_1_001_CA_1_validation</td>\n",
+       "      <td>0.929592</td>\n",
+       "      <td>0.877259</td>\n",
+       "      <td>0.867928</td>\n",
+       "      <td>0.833365</td>\n",
+       "      <td>1.088559</td>\n",
+       "      <td>1.303672</td>\n",
+       "      <td>1.205607</td>\n",
+       "      <td>0.977219</td>\n",
+       "      <td>0.965215</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1.038477</td>\n",
+       "      <td>1.315043</td>\n",
+       "      <td>1.219195</td>\n",
+       "      <td>0.953315</td>\n",
+       "      <td>0.861192</td>\n",
+       "      <td>0.846785</td>\n",
+       "      <td>0.855086</td>\n",
+       "      <td>1.021861</td>\n",
+       "      <td>1.265623</td>\n",
+       "      <td>1.269435</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>FOODS_1_001_CA_2_validation</td>\n",
+       "      <td>1.003794</td>\n",
+       "      <td>1.073400</td>\n",
+       "      <td>0.956439</td>\n",
+       "      <td>1.177071</td>\n",
+       "      <td>1.264703</td>\n",
+       "      <td>1.478342</td>\n",
+       "      <td>1.630677</td>\n",
+       "      <td>0.991131</td>\n",
+       "      <td>1.013872</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1.254157</td>\n",
+       "      <td>1.700692</td>\n",
+       "      <td>1.511429</td>\n",
+       "      <td>1.110740</td>\n",
+       "      <td>1.038089</td>\n",
+       "      <td>1.018483</td>\n",
+       "      <td>1.010970</td>\n",
+       "      <td>1.212411</td>\n",
+       "      <td>1.676896</td>\n",
+       "      <td>1.470262</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>FOODS_1_001_CA_3_validation</td>\n",
+       "      <td>1.134946</td>\n",
+       "      <td>1.107090</td>\n",
+       "      <td>1.006789</td>\n",
+       "      <td>0.993268</td>\n",
+       "      <td>1.055130</td>\n",
+       "      <td>1.289149</td>\n",
+       "      <td>1.176603</td>\n",
+       "      <td>1.069256</td>\n",
+       "      <td>1.089644</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1.112064</td>\n",
+       "      <td>1.444583</td>\n",
+       "      <td>1.489367</td>\n",
+       "      <td>1.085112</td>\n",
+       "      <td>1.049845</td>\n",
+       "      <td>0.966421</td>\n",
+       "      <td>0.958919</td>\n",
+       "      <td>1.064863</td>\n",
+       "      <td>1.252499</td>\n",
+       "      <td>1.283661</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>FOODS_1_001_CA_4_validation</td>\n",
+       "      <td>0.398045</td>\n",
+       "      <td>0.361302</td>\n",
+       "      <td>0.353609</td>\n",
+       "      <td>0.355514</td>\n",
+       "      <td>0.422341</td>\n",
+       "      <td>0.452588</td>\n",
+       "      <td>0.512190</td>\n",
+       "      <td>0.381750</td>\n",
+       "      <td>0.417022</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.429796</td>\n",
+       "      <td>0.451024</td>\n",
+       "      <td>0.492698</td>\n",
+       "      <td>0.373569</td>\n",
+       "      <td>0.358131</td>\n",
+       "      <td>0.370715</td>\n",
+       "      <td>0.373072</td>\n",
+       "      <td>0.428600</td>\n",
+       "      <td>0.468768</td>\n",
+       "      <td>0.486457</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>FOODS_1_001_TX_1_validation</td>\n",
+       "      <td>0.183083</td>\n",
+       "      <td>0.180869</td>\n",
+       "      <td>0.177369</td>\n",
+       "      <td>0.178445</td>\n",
+       "      <td>0.165835</td>\n",
+       "      <td>0.180205</td>\n",
+       "      <td>0.216274</td>\n",
+       "      <td>0.452311</td>\n",
+       "      <td>0.420085</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.427727</td>\n",
+       "      <td>0.378546</td>\n",
+       "      <td>0.366674</td>\n",
+       "      <td>0.308961</td>\n",
+       "      <td>0.302397</td>\n",
+       "      <td>0.290927</td>\n",
+       "      <td>0.286476</td>\n",
+       "      <td>0.303250</td>\n",
+       "      <td>0.341743</td>\n",
+       "      <td>0.327374</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 29 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "F                           id        F1        F2        F3        F4  \\\n",
+       "0  FOODS_1_001_CA_1_validation  0.929592  0.877259  0.867928  0.833365   \n",
+       "1  FOODS_1_001_CA_2_validation  1.003794  1.073400  0.956439  1.177071   \n",
+       "2  FOODS_1_001_CA_3_validation  1.134946  1.107090  1.006789  0.993268   \n",
+       "3  FOODS_1_001_CA_4_validation  0.398045  0.361302  0.353609  0.355514   \n",
+       "4  FOODS_1_001_TX_1_validation  0.183083  0.180869  0.177369  0.178445   \n",
+       "\n",
+       "F        F5        F6        F7        F8        F9  ...       F19       F20  \\\n",
+       "0  1.088559  1.303672  1.205607  0.977219  0.965215  ...  1.038477  1.315043   \n",
+       "1  1.264703  1.478342  1.630677  0.991131  1.013872  ...  1.254157  1.700692   \n",
+       "2  1.055130  1.289149  1.176603  1.069256  1.089644  ...  1.112064  1.444583   \n",
+       "3  0.422341  0.452588  0.512190  0.381750  0.417022  ...  0.429796  0.451024   \n",
+       "4  0.165835  0.180205  0.216274  0.452311  0.420085  ...  0.427727  0.378546   \n",
+       "\n",
+       "F       F21       F22       F23       F24       F25       F26       F27  \\\n",
+       "0  1.219195  0.953315  0.861192  0.846785  0.855086  1.021861  1.265623   \n",
+       "1  1.511429  1.110740  1.038089  1.018483  1.010970  1.212411  1.676896   \n",
+       "2  1.489367  1.085112  1.049845  0.966421  0.958919  1.064863  1.252499   \n",
+       "3  0.492698  0.373569  0.358131  0.370715  0.373072  0.428600  0.468768   \n",
+       "4  0.366674  0.308961  0.302397  0.290927  0.286476  0.303250  0.341743   \n",
+       "\n",
+       "F       F28  \n",
+       "0  1.269435  \n",
+       "1  1.470262  \n",
+       "2  1.283661  \n",
+       "3  0.486457  \n",
+       "4  0.327374  \n",
+       "\n",
+       "[5 rows x 29 columns]"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sub.head()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.12"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 6850.151236,
+   "end_time": "2023-08-16T03:15:29.737936",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2023-08-16T01:21:19.586700",
+   "version": "2.4.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
